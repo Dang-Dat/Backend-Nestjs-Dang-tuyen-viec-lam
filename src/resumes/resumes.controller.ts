@@ -25,7 +25,7 @@ export class ResumesController {
     return this.resumesService.findAll(+currentPage, +limit, qs);
   }
 
-  @Post('by-user')
+  @Get('by-user')
   @ResponseMessage('Get resume by user')
   getResumeByUser(@User() user: IUser) {
     return this.resumesService.findByUsers(user)

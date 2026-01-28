@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestj
 import { SubscribersService } from './subscribers.service';
 import { CreateSubscriberDto } from './dto/create-subscriber.dto';
 import { UpdateSubscriberDto } from './dto/update-subscriber.dto';
-import { ResponseMessage, User } from 'src/decorator/customeiz';
+import { ResponseMessage, SkipCheckPermission, User } from 'src/decorator/customeiz';
 import { IUser } from 'src/users/user.interface';
 
 @Controller('subscribers')
@@ -15,6 +15,7 @@ export class SubscribersController {
     return this.subscribersService.create(createSubscriberDto, user);
   }
 
+  @SkipCheckPermission()
   @ResponseMessage("Fetch subscriber with paginate")
   @Get()
   findAll(
@@ -25,20 +26,35 @@ export class SubscribersController {
     return this.subscribersService.findAll(+currentPage, +limit, qs);
   }
 
+
   @ResponseMessage("Find subscriber by id")
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.subscribersService.findOne(id);
   }
 
+  @SkipCheckPermission()
   @ResponseMessage("Update a subscriber")
+  @Patch()
+  update(@Body() updateSubscriberDto: UpdateSubscriberDto, @User() user: IUser) {
+    return this.subscribersService.update(updateSubscriberDto, user);
+  }
+
+  @ResponseMessage("Update a subscriber by id")
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSubscriberDto: UpdateSubscriberDto, @User() user: IUser) {
-    return this.subscribersService.update(id, updateSubscriberDto, user);
+  updateById(@Param('id') id: string, @Body() updateSubscriberDto: UpdateSubscriberDto, @User() user: IUser) {
+    return this.subscribersService.updateById(id, updateSubscriberDto, user);
   }
   @ResponseMessage("Delete a subscriber")
   @Delete(':id')
   remove(@Param('id') id: string, @User() user: IUser) {
     return this.subscribersService.remove(id, user);
+  }
+
+  @SkipCheckPermission()
+  @Post("skills")
+  @ResponseMessage("Get subscriber's skills")
+  getUserSkills(@User() user: IUser) {
+    return this.subscribersService.getSkills(user)
   }
 }

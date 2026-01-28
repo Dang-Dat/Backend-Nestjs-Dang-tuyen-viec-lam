@@ -5,7 +5,7 @@ import { IUser } from 'src/users/user.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { Job } from './schema/job.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import { UserDocument } from 'src/users/schemas/user.shemas';
+import { UserDocument } from 'src/users/schemas/user.schema';
 import aqp from 'api-query-params';
 import mongoose from 'mongoose';
 

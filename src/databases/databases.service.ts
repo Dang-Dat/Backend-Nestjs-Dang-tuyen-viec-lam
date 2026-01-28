@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { Permission, PermissionDocument } from 'src/permissions/schema/permission.schema';
 import { Role, RoleDocument } from 'src/roles/schema/role.schema';
-import { User, UserDocument } from 'src/users/schemas/user.shemas';
+import { User, UserDocument } from 'src/users/schemas/user.schema';
 import { UsersService } from 'src/users/users.service';
 import { ADMIN_ROLE, INIT_PERMISSIONS, USER_ROLE } from './sample';
 
@@ -70,8 +70,8 @@ export class DatabasesService implements OnModuleInit {
                         role: adminRole?._id
                     },
                     {
-                        name: "I'm Hỏi Dân IT",
-                        email: "hoidanit@gmail.com",
+                        name: "dat",
+                        email: "dat@gmail.com",
                         password: this.userService.getHashPassword(this.configService.get<string>("INIT_PASSWORD")),
                         age: 96,
                         gender: "MALE",

@@ -2,22 +2,66 @@ import { Controller, Get } from '@nestjs/common';
 import { MailService } from './mail.service';
 import { Public, ResponseMessage } from 'src/decorator/customeiz';
 import { MailerService } from '@nestjs-modules/mailer';
+import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { Subscriber, SubscriberDocument } from 'src/subscribers/schema/subscriber.shema';
+import { Job, JobDocument } from 'src/jobs/schema/job.schema';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Controller('mail')
 export class MailController {
   constructor(private readonly mailService: MailService,
-    private mailerService: MailerService
+    private mailerService: MailerService,
+    @InjectModel(Subscriber.name)
+    private subscriberModel: SoftDeleteModel<SubscriberDocument>,
+    @InjectModel(Job.name)
+    private jobModel: SoftDeleteModel<JobDocument>
   ) { }
 
   @Get()
   @Public()
   @ResponseMessage("Test email")
   async handleTestEmail() {
-    await this.mailerService.sendMail({
-      to: "dangdat0807@gmail.com",
-      from: '"Support Team" <support@example.com>', // override default from
-      subject: 'Welcome to Nice App! Confirm your Email',
-      html: '<b>welcome bla bla</b>', // HTML body content
-    });
+    const jobs = [
+      {
+        name: "abc xasds",
+        company: "vpttr",
+        salary: "5000",
+        skills: ["react", "nestjs"]
+      },
+      {
+        name: "xyz",
+        company: "asdasda",
+        salary: "5011100",
+        skills: ["rea222ct", "n22estjs"]
+      }
+    ]
+    const subscribers = await this.subscriberModel.find({});
+    for (const subs of subscribers) {
+      const subsSkills = subs.skills;
+      const jobWithMatchingSkills = await this.jobModel.find({ skills: { $in: subsSkills } });
+      //todo
+      //build template
+      if (jobWithMatchingSkills?.length) {
+        const jobs = jobWithMatchingSkills.map(item => {
+          return {
+            name: item.name,
+            company: item.company,
+            salary: `${item.salary}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + " đ",
+            skills: item.skills
+          }
+        })
+        await this.mailerService.sendMail({
+          to: "dangdat0807@gmail.com",
+          from: '"Support Team" <support@example.com>', // override default from
+          subject: 'Welcome to Nice App! Confirm your Email',
+          template: "job", // HTML body content
+          context: {
+            receiver: subs.name,
+            jobs: jobs
+          }
+        });
+      }
+    }
+
   }
 }

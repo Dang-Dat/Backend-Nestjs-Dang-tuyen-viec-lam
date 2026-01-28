@@ -53,6 +53,7 @@ export class AuthService {
 
         await this.usersService.updateUserToken(refresh_token, _id)
         //set refresh token as cookies
+
         response.cookie("refresh_token", refresh_token, {
             httpOnly: true,
             maxAge: ms(this.configService.get<string>("JWT_REFRESH_EXPIRE"))
@@ -70,6 +71,7 @@ export class AuthService {
             }
         }
     }
+
     async register(user: RegisterUserDto) {
         let newUser = await this.usersService.register(user)
         return {
@@ -113,7 +115,7 @@ export class AuthService {
                 const userRole = user.role as unknown as { _id: string; name: string }
                 const temp = await this.rolesService.findOne(userRole._id)
 
-                //set refresh token as cookies
+                //set refresh token as cookies sau khi  dang nhap
                 response.clearCookie("refreshToken")
                 response.cookie("refresh_token", refresh_token, {
                     httpOnly: true,

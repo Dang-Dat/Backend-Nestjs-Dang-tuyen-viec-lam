@@ -70,9 +70,21 @@ export class SubscribersService {
     })
   }
 
-  async update(id: string, updateSubscriberDto: UpdateSubscriberDto, user: IUser) {
+  async update(updateSubscriberDto: UpdateSubscriberDto, user: IUser) {
 
-    return await this.subscriberModel.updateOne({ _id: id }, { ...updateSubscriberDto, updatedBy: { _id: user._id, email: user.email } })
+    return await this.subscriberModel.updateOne(
+      { email: user.email },
+      { ...updateSubscriberDto, updatedBy: { _id: user._id, email: user.email } },
+      { upsert: true }
+    )
+  }
+
+  async updateById(id: string, updateSubscriberDto: UpdateSubscriberDto, user: IUser) {
+    return await this.subscriberModel.updateOne(
+      { _id: id },
+      { ...updateSubscriberDto, updatedBy: { _id: user._id, email: user.email } },
+      { upsert: false } // Do not create if not exists when updating by ID
+    )
   }
 
   async remove(id: string, user: IUser) {
@@ -89,5 +101,9 @@ export class SubscribersService {
     return this.subscriberModel.softDelete(
       { _id: id },
     )
+  }
+  async getSkills(user: IUser) {
+    const { email } = user;
+    return await this.subscriberModel.findOne({ email }, { skills: 1 })
   }
 }

@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User, UserDocument } from './schemas/user.shemas';
+import { User, UserDocument } from './schemas/user.schema';
 import mongoose, { Model } from 'mongoose'
 import { InjectModel } from '@nestjs/mongoose';
 import { compareSync, genSaltSync, hashSync } from 'bcryptjs'
@@ -34,6 +34,7 @@ export class UsersService {
     if (isExist) {
       throw new BadRequestException(`Email: ${email} da ton tai. Vui long su dung email khac`)
     }
+
     const hassPassword = this.getHashPassword(createUserDto.password)
     let newUser = await this.userModel.create({
       name, email, password: hassPassword, age, gender, address, company,
@@ -46,33 +47,70 @@ export class UsersService {
     return newUser;
   }
 
+  // async findAll(currentPage: number, limit: number, qs: string) {
+  //   const { filter, sort, population } = aqp(qs);
+  //   delete filter.current;
+  //   delete filter.pageSize;
+
+  //   let offset = (+currentPage - 1) * (+limit);
+  //   let defaultLimit = +limit ? +limit : 10;
+
+  //   const totalItems = (await this.userModel.find(filter)).length;
+  //   const totalPages = Math.ceil(totalItems / defaultLimit);
+
+  //   const result = await this.userModel.find(filter)
+  //     .skip(offset)
+  //     .limit(defaultLimit)
+  //     .sort(sort as any)
+  //     .populate(population)
+  //     .exec();
+  //   return {
+  //     meta: {
+  //       current: currentPage, //trang hiện tại
+  //       pageSize: limit, //số lượng bản ghi đã lấy
+  //       pages: totalPages, //tổng số trang với điều kiện query
+  //       total: totalItems // tổng số phần tử (số bản ghi)
+  //     },
+  //     result //kết quả query
+  //   }
+  // }
   async findAll(currentPage: number, limit: number, qs: string) {
-    const { filter, sort, population } = aqp(qs);
+    const { filter, sort } = aqp(qs);
+
     delete filter.current;
     delete filter.pageSize;
 
-    let offset = (+currentPage - 1) * (+limit);
-    let defaultLimit = +limit ? +limit : 10;
+    const page = +currentPage || 1;
+    const pageSize = +limit || 10;
+    const offset = (page - 1) * pageSize;
 
-    const totalItems = (await this.userModel.find(filter)).length;
-    const totalPages = Math.ceil(totalItems / defaultLimit);
+    const totalItems = await this.userModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / pageSize);
 
-    const result = await this.userModel.find(filter)
+    const result = await this.userModel
+      .find(filter)
       .skip(offset)
-      .limit(defaultLimit)
+      .limit(pageSize)
       .sort(sort as any)
-      .populate(population)
+      .populate({
+        path: 'role',
+        select: 'name',
+      })
+      .select('-password -refreshToken') // 🔥 rất nên làm
+      .lean()
       .exec();
+
     return {
       meta: {
-        current: currentPage, //trang hiện tại
-        pageSize: limit, //số lượng bản ghi đã lấy
-        pages: totalPages, //tổng số trang với điều kiện query
-        total: totalItems // tổng số phần tử (số bản ghi)
+        current: page,
+        pageSize: result.length,
+        pages: totalPages,
+        total: totalItems,
       },
-      result //kết quả query
-    }
+      result,
+    };
   }
+
 
   async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -111,8 +149,8 @@ export class UsersService {
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return "not found user"
     }
-    const findUser = await this.userModel.findById({ id })
-    if (findUser && findUser.email === "admin@gamil.com") {
+    const findUser = await this.userModel.findById(id)
+    if (findUser && findUser.email === "admin@gmail.com") {
       throw new BadRequestException("khong the xoa tai khoan admin")
     }
     await this.userModel.updateOne({ _id: id },

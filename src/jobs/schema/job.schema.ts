@@ -2,6 +2,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 import { isEmpty } from 'rxjs';
 
+export type JobDocument = HydratedDocument<Job>;
+
 @Schema({ timestamps: true })
 export class Job {
 

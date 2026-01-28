@@ -25,14 +25,14 @@ import { MailModule } from './mail/mail.module';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({
-      uri: config.get<string>('MONGO_URL'),
-      connectionFactory: (connection) => {
-      connection.plugin(softDeletePlugin);
-      return connection;
-      }
+        uri: config.get<string>('MONGO_URL'),
+        connectionFactory: (connection) => {
+          connection.plugin(softDeletePlugin);
+          return connection;
+        }
       }),
       inject: [ConfigService],
-      }),
+    }),
     UsersModule,
     ConfigModule.forRoot({ isGlobal: true }),
     AuthModule,
@@ -49,11 +49,11 @@ import { MailModule } from './mail/mail.module';
   ],
   controllers: [AppController],
   providers: [AppService,
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: JwtAuthGuard,
-    // }
-    ],
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    }
+  ],
 
 })
 export class AppModule { }
